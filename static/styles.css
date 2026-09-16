@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root {
+  --ink: #17231f;
+  --muted: #6c7d76;
+  --paper: #f4f7f2;
+  --panel: #ffffff;
+  --line: #dce6de;
+  --green: #176b50;
+  --lime: #d7f26b;
+  --coral: #ef735f;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: radial-gradient(circle at 10% 0%, #e8f3d2 0, transparent 34%), var(--paper); font-family: 'DM Sans', sans-serif; }
+.shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 70px 0 90px; }
+.intro {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 34px;
+}
+.intro h1 { margin: 0; font: 700 clamp(2.8rem, 7vw, 5.8rem)/.9 'Space Grotesk', sans-serif; letter-spacing: -3px; }
+.eyebrow {
+  position: static;
+  margin: 0;
+  color: var(--green);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.lede {
+  max-width: none;
+  margin: 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.signal {
+  margin: 0;
+  justify-self: end;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  color: var(--green);
+  font-size: .78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.signal span { display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: #74b83f; }
+.panel { padding: 30px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: 0 22px 60px rgba(38, 62, 49, .08); }
+.section-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.section-heading span { color: var(--green); font-size: .76rem; font-weight: 700; }
+h2 { margin: 0; font: 600 1.1rem 'Space Grotesk', sans-serif; }
+.second-heading { margin-top: 34px; }
+.field-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 17px; }
+.five-columns { grid-template-columns: repeat(5, 1fr); }
+label { display: grid; gap: 8px; color: var(--muted); font-size: .78rem; font-weight: 600; text-transform: capitalize; }
+input, select { width: 100%; border: 1px solid var(--line); border-radius: 4px; padding: 13px 12px; color: var(--ink); background: #fbfdf9; font: inherit; font-size: .92rem; }
+input:focus, select:focus { outline: 2px solid var(--lime); border-color: var(--green); }
+.upload-label { margin-top: 30px; padding: 18px; border: 1px dashed #abc0ae; border-radius: 5px; background: #f8fbf5; }
+.upload-hint { color: var(--muted); font-size: .72rem; font-weight: 400; text-transform: none; }
+button { width: 100%; margin-top: 22px; padding: 16px 20px; border: 0; border-radius: 4px; color: var(--ink); background: var(--lime); cursor: pointer; font: 700 1rem 'Space Grotesk', sans-serif; }
+button:hover { background: #c8e952; }
+button span { float: right; font-size: 1.4rem; line-height: .7; }
+.result { display: grid; gap: 4px; margin-bottom: 28px; padding: 20px; border-left: 5px solid var(--green); background: #eef8df; }
+.result.positive { border-color: var(--coral); background: #fff0ea; }
+.result-kicker { color: var(--muted); font-size: .72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+.result strong { font: 700 2rem 'Space Grotesk', sans-serif; }
+.result span:last-child { color: var(--muted); font-size: .82rem; }
+.alert { margin-bottom: 20px; padding: 12px; border-radius: 4px; color: #8e3025; background: #fff0ea; font-size: .85rem; }
+@media (max-width: 800px) {
+  .intro {
+    display: block;
+  }
+
+  .eyebrow,
+  .lede,
+  .signal {
+    margin-bottom: 14px;
+  }
+
+  .lede {
+    text-align: left;
+  }
+
+  .signal {
+    display: inline-block;
+  }
+
+  .five-columns,
+  .field-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 520px) { 
+  .shell { 
+    width: min(100% - 24px, 1120px); 
+    padding-top: 56px; 
+  } 
+
+  .panel { 
+    padding: 20px; 
+  } 
+
+  .field-grid, .five-columns { 
+    grid-template-columns: 1fr; 
+  } 
+
+  .intro h1 { 
+    letter-spacing: -2px; 
+  } 
+}

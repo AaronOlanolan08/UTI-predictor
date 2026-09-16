@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UTI Predictor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="shell">
+    <section class="intro">
+      <p class="eyebrow">Urinalysis screening tool</p>
+      <p class="lede">Enter the sample details below to receive a model prediction.</p>
+      <div class="signal"><span></span> Model ready</div>
+    </section>
+
+    <section class="panel">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      {% if result %}
+        <div class="result {{ 'positive' if result.label == 'POSITIVE' else 'negative' }}">
+          <span class="result-kicker">Prediction</span>
+          <strong>{{ result.label }}</strong>
+          <span>{{ result.confidence }}% model confidence</span>
+        </div>
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data">
+
+        <div class="section-heading second-heading">
+          <h2>Patient Details</h2>
+        </div>
+        <div class="field-grid">
+          <label>Age <input type="number" name="age" min="0" max="120" step="1" required value="{{ form_values.get('age', '') }}"></label>
+          {% for key, values in options.items() %}
+            <label>{{ key.replace('_', ' ')|title }}
+              <select name="{{ key }}" required>
+                <option value="" disabled {% if not form_values.get(key) %}selected{% endif %}>Select one</option>
+                {% for value in values %}
+                  <option value="{{ value }}" {% if form_values.get(key) == value %}selected{% endif %}>{{ value }}</option>
+                {% endfor %}
+              </select>
+            </label>
+          {% endfor %}
+          <label>pH <input type="number" name="ph" min="0" max="14" step="0.1" required value="{{ form_values.get('ph', '') }}"></label>
+          <label>Specific gravity <input type="number" name="specific_gravity" min="1" max="2" step="0.001" required value="{{ form_values.get('specific_gravity', '') }}"></label>
+          <label>WBC count <input type="number" name="wbc" min="0" step="1" required value="{{ form_values.get('wbc', '') }}"></label>
+          <label>RBC count <input type="number" name="rbc" min="0" step="1" required value="{{ form_values.get('rbc', '') }}"></label>
+        </div>
+
+        <label class="upload-label">Urinalysis report or image
+          <input id="sample-file" type="file" name="sample_file" accept=".jpg,.jpeg,.png,.pdf">
+          <span class="upload-hint">Optional · PDF, JPG, or PNG · detected values fill the form automatically</span>
+          <span id="ocr-status" class="upload-hint" aria-live="polite"></span>
+        </label>
+
+        <button type="submit">Predict <span aria-hidden="true">→</span></button>
+      </form>
+    </section>
+  </main>
+  <script>
+    const fileInput = document.querySelector('#sample-file');
+    const ocrStatus = document.querySelector('#ocr-status');
+
+    fileInput.addEventListener('change', async () => {
+      if (!fileInput.files.length) return;
+      const data = new FormData();
+      data.append('sample_file', fileInput.files[0]);
+      ocrStatus.textContent = ' Reading report...';
+      try {
+        const response = await fetch('{{ url_for("extract") }}', { method: 'POST', body: data });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error);
+        Object.entries(payload.fields).forEach(([name, value]) => {
+          const field = document.querySelector(`[name="${name}"]`);
+          if (field) field.value = value;
+        });
+        ocrStatus.textContent = Object.keys(payload.fields).length
+          ? ' Values detected and filled. Review them before predicting.'
+          : ' No matching values detected.';
+      } catch (error) {
+        ocrStatus.textContent = ` ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
