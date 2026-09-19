@@ -63,15 +63,15 @@ def read_upload_text(file_path):
 		if text.strip():
 			return text
 
-		pdf = pymupdf.open(file_path)
 		ocr_lines = []
-		for page in pdf:
-			pixmap = page.get_pixmap(matrix=pymupdf.Matrix(2, 2), alpha=False)
-			with NamedTemporaryFile(suffix=".png") as image_file:
-				image_file.write(pixmap.tobytes("png"))
-				image_file.flush()
-				ocr_result, _ = ocr_engine(image_file.name)
-				ocr_lines.extend(item[1] for item in ocr_result or [])
+		with pymupdf.open(file_path) as pdf:
+			for page in pdf:
+				pixmap = page.get_pixmap(matrix=pymupdf.Matrix(2, 2), alpha=False)
+				with NamedTemporaryFile(suffix=".png") as image_file:
+					image_file.write(pixmap.tobytes("png"))
+					image_file.flush()
+					ocr_result, _ = ocr_engine(image_file.name)
+					ocr_lines.extend(item[1] for item in ocr_result or [])
 		return "\n".join(ocr_lines)
 
 	ocr_result, _ = ocr_engine(str(file_path))
@@ -139,11 +139,16 @@ def index():
 	form_values = request.form.to_dict() if request.method == "POST" else {}
 
 	if request.method == "POST":
+		upload_path = None
 		try:
 			upload = request.files.get("sample_file")
-			if upload and upload.filename:
+			required_model_fields = {"wbc", "transparency", "epithelial_cells", "bacteria"}
+			if upload and upload.filename and not required_model_fields.issubset(form_values):
 				filename = save_upload(upload)
-				form_values.update(extract_fields(UPLOAD_DIR / filename))
+				if not filename:
+					raise ValueError("Only PDF, JPG, JPEG, and PNG files are supported.")
+				upload_path = UPLOAD_DIR / filename
+				form_values.update(extract_fields(upload_path))
 			features = pd.DataFrame([{
 				"WBC": float(form_values["wbc"]),
 				"Transparency": form_values["transparency"],
@@ -160,6 +165,9 @@ def index():
 			flash(f"Please check the form values: {error}", "error")
 		except Exception:
 			flash("The sample could not be analyzed. Please try again.", "error")
+		finally:
+			if upload_path:
+				upload_path.unlink(missing_ok=True)
 
 	return render_template("index.html", options=OPTIONS, result=result, form_values=form_values)
 
@@ -172,10 +180,13 @@ def extract():
 	filename = save_upload(upload)
 	if not filename:
 		return jsonify({"error": "Only PDF, JPG, JPEG, and PNG files are supported."}), 400
+	upload_path = UPLOAD_DIR / filename
 	try:
-		return jsonify({"fields": extract_fields(UPLOAD_DIR / filename)})
+		return jsonify({"fields": extract_fields(upload_path)})
 	except Exception as error:
 		return jsonify({"error": f"Could not read this file: {error}"}), 422
+	finally:
+		upload_path.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
